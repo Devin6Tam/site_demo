@@ -1,0 +1,9 @@
+# 构建镜像
+docker build -t registry.cn-hangzhou.aliyuncs.com/txtxw/alpine-python:v3 .
+# 登陆阿里公共进行[账号，密码省略]
+docker login registry.cn-hangzhou.aliyuncs.com
+# 推送镜像
+docker push registry.cn-hangzhou.aliyuncs.com/txtxw/alpine-python:v3 .
+
+
+本镜像适用于flask，如换成其他框架，需要继续安装依赖库

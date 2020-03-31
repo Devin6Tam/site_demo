@@ -1,0 +1,118 @@
+https://www.bootcdn.cn/ bootcdn前端开源社区
+https://v3.bootcss.com/ Bootstrap中文网
+https://www.nodeapp.cn/ node.js中文网
+https://vuejs.bootcss.com/guide/ vue.js中文网
+https://www.progit.cn/ git使用中文教程
+
+pip freeze > ./requirements.txt   # 导出依赖库
+pip install -r requirements.txt -i http://mirrors.aliyun.com/pypi/simple/  --trusted-host=mirrors.aliyun.com    # 导入依赖库
+
+
+#　若有其他模块需要应用进来，需要编译、打包、安装
+python setup.py build  执行编译命令
+python setup.py sdist  执行打包命令
+pip install --user site_demo-1.0.tar.gz   安装
+pip uninstall site_demo   卸载
+
+
+发布应用  pypi教程如下
+https://packaging.python.org/distributing/#uploading-your-project-to-pypi
+
+
+nginx 启动与停止
+/usr/local/nginx/sbin/nginx
+/usr/local/nginx/sbin/nginx -s stop
+/usr/local/nginx/sbin/nginx -s reload
+
+# 基础镜像介绍
+alpine 初始镜像小，安装简单，硬盘容量占用比较小  稳定版本：3.9
+centos 初始镜像小，安装依赖库之后，硬盘容量占用比较大 大于1.3G   稳定版本：7
+ubuntu 初始镜像小，安装简单，硬盘容量占用比较小  稳定版本：16.04
+
+https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/
+https://mirrors.aliyun.com/alpine/v3.9/
+
+https://mirror.tuna.tsinghua.edu.cn/centos/7.7.1908/
+https://mirrors.aliyun.com/centos/7.7.1908/
+https://mirrors.163.com/centos/7.7.1908/
+https://mirrors.cloud.tencent.com/centos/7.7.1908/
+
+https://mirror.tuna.tsinghua.edu.cn/ubuntu/
+https://mirrors.aliyun.com/ubuntu/
+
+
+# 构建镜像 在Dockerfile所有在目录执行
+docker build -t site_demo:v1.0.1 .
+# 运行容器
+docker run -itd -p 8001:8000 -p 81:80 site_demo:v1.0.1
+
+#清理废弃容器，脏镜像
+docker rm $(docker ps -a | grep "Exited" | awk '{print $1}')
+docker rmi $(docker images | grep none | awk '{print $3}')
+
+# 将windows下的文件转成unix格式
+sed -i 's/\r//' start.sh
+sed -i 's/\r//' stop.sh
+
+
+##########################################################
+# 运行项目
+
+windows  只需要进入site_demo目录中，运行 python manage.py runserver [8000]
+
+linux 运行项目
+
+A方案
+docker build -t site_demo:v1.0.1 .
+docker run -itd -p 8001:8000 -p 81:80 site_demo:v1.0.1
+
+打包文件
+Dockerfile,nginx.conf,start.sh,stop.sh,uwsgi.ini,uwsgi_params,site_demo-1.0.tar.gz
+
+
+B方案
+本项目部署使用nginx + uwsgi + socket + django 相应技术部署
+如在linux 服务器部署 第一次需要先执行 sh install.sh，后续部署更新部分文件即可
+sh deploy.sh 环境安装
+sh start.sh
+sh stop.sh
+
+打包文件
+deploy.sh,install.sh,start.sh,stop.sh,site_demo-1.0.tar.gz
+
+##########################################################
+python 依赖库-国内镜像配置源，可加速下载
+https://mirrors.163.com/pypi/simple/
+https://mirrors.aliyun.com/pypi/simple/
+https://mirrors.cloud.tencent.com/pypi/simple/
+
+python 环境安装包，国内源
+https://mirrors.huaweicloud.com/python/3.7.7/
+https://mirrors.sohu.com/python/3.7.7/
+
+
+##########################################################
+1.解决问题：OSError: mysql_config not found
+通过pip install mysqlclient时报出了OSError: mysql_config not found错误
+需要安装mysqlclient 依赖的库
+yum install -y gcc gcc-devel python-devel mysql-devel     centos
+apt-get install -y libmysqlclient-dev
+
+
+2. nginx+uwsgi部署django项目，admin静态文件加载问题
+解决办法：
+在项目setting.py文件中添加：STATIC_ROOT = '/static/'
+在项目目录下收集项目静态文件：(先进虚拟环境)
+python manage.py collectstatic
+收集成功后，文件在系统根目录的/static中：（可以看到有admin）
+
+
+3.*1 connect() to unix:///tmp/uwsgi.sock failed (2: No such file or directory) while connecting to upstream,
+uwsgi.ini 配置中
+uwsgi-socket=/tmp/uwsgi.sock  使用unix:///tmp/uwsgi.sock访问服务
+chmod-socket=777
+
+
+
+4.使用pillow依赖库注意制作镜像时，需要安装依赖库详见github官网说明
+https://github.com/python-pillow/docker-images
